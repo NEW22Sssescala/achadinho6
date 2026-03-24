@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Carrinho | Achadinhos da Vitrine</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #f8f9fa; color: #1a1a1a; }
+
+    header { background: #ff6e36; padding: 14px 20px; display: flex; align-items: center; gap: 12px; }
+    header a { color: #fff; text-decoration: none; font-size: 22px; }
+    header h1 { color: #fff; font-size: 18px; font-weight: 700; }
+    .logo { color: #fff; font-size: 20px; font-weight: 900; margin-right: auto; }
+
+    .container { max-width: 640px; margin: 0 auto; padding: 20px 16px 100px; }
+
+    .empty { text-align: center; padding: 60px 20px; }
+    .empty-icon { font-size: 64px; margin-bottom: 16px; }
+    .empty h2 { font-size: 20px; color: #333; margin-bottom: 8px; }
+    .empty p { color: #888; margin-bottom: 24px; }
+    .btn-primary { display: inline-block; background: #ff6e36; color: #fff; font-weight: 700; padding: 14px 28px; border-radius: 12px; text-decoration: none; border: none; cursor: pointer; font-size: 16px; width: 100%; text-align: center; }
+    .btn-primary:hover { background: #e55a22; }
+
+    .cart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .cart-header h2 { font-size: 18px; font-weight: 700; }
+    .clear-btn { background: none; border: none; color: #e55; font-size: 14px; cursor: pointer; }
+
+    .cart-item { background: #fff; border-radius: 16px; padding: 14px; display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+    .cart-item img { width: 72px; height: 72px; object-fit: cover; border-radius: 10px; flex-shrink: 0; }
+    .item-info { flex: 1; min-width: 0; }
+    .item-name { font-size: 14px; font-weight: 600; line-height: 1.3; margin-bottom: 4px; }
+    .item-price { color: #ff6e36; font-weight: 800; font-size: 16px; }
+    .item-original { color: #aaa; font-size: 12px; text-decoration: line-through; margin-left: 6px; }
+    .qty-controls { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+    .qty-btn { width: 28px; height: 28px; border-radius: 8px; border: 1.5px solid #e0e0e0; background: #fff; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+    .qty-btn:hover { background: #f5f5f5; }
+    .qty-num { font-size: 15px; font-weight: 700; min-width: 20px; text-align: center; }
+    .remove-btn { background: none; border: none; color: #ccc; font-size: 18px; cursor: pointer; padding: 4px; margin-left: auto; }
+    .remove-btn:hover { color: #e55; }
+
+    .summary { background: #fff; border-radius: 16px; padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+    .summary-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 14px; color: #555; }
+    .summary-row.total { font-size: 18px; font-weight: 800; color: #1a1a1a; margin-bottom: 0; padding-top: 10px; border-top: 1.5px solid #f0f0f0; }
+    .summary-row .green { color: #16a34a; font-weight: 700; }
+
+    .frete-badge { display: flex; align-items: center; gap: 6px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 8px 12px; margin-bottom: 16px; font-size: 13px; color: #15803d; font-weight: 600; }
+
+    .sticky-checkout { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #f0f0f0; padding: 12px 20px; box-shadow: 0 -4px 20px rgba(0,0,0,0.1); }
+    .sticky-checkout .btn-primary { font-size: 17px; padding: 16px; border-radius: 14px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <a href="index.html">←</a>
+  <span class="logo">🛒 Carrinho</span>
+</header>
+
+<div class="container">
+  <div id="cart-content"></div>
+</div>
+
+<div class="sticky-checkout" id="checkout-bar" style="display:none;">
+  <button class="btn-primary" onclick="goCheckout()">Finalizar Compra →</button>
+</div>
+
+<script>
+  const CART_KEY = 'achadinhos_cart';
+  function getCart() {
+    try { return JSON.parse(localStorage.getItem(CART_KEY) || '[]'); } catch { return []; }
+  }
+  function saveCart(cart) {
+    localStorage.setItem(CART_KEY, JSON.stringify(cart));
+  }
+
+  function formatPrice(p) {
+    return 'R$ ' + p.toFixed(2).replace('.', ',');
+  }
+
+  function parsePrice(str) {
+    if (!str) return 0;
+    return parseFloat(str.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
+  }
+
+  function render() {
+    const cart = getCart();
+    const el = document.getElementById('cart-content');
+    const bar = document.getElementById('checkout-bar');
+
+    if (cart.length === 0) {
+      bar.style.display = 'none';
+      el.innerHTML = `
+        <div class="empty">
+          <div class="empty-icon">🛒</div>
+          <h2>Seu carrinho está vazio</h2>
+          <p>Adicione produtos incríveis com até 97% OFF!</p>
+          <a href="index.html" class="btn-primary">Ver Ofertas</a>
+        </div>`;
+      return;
+    }
+
+    bar.style.display = 'block';
+
+    let subtotal = 0;
+    let originalTotal = 0;
+    const items = cart.map((item, idx) => {
+      // Suporte ao formato do site original (price numérico) e formato local
+      const price = typeof item.price === 'number' ? item.price : parsePrice(item.currentPrice);
+      const original = typeof item.originalPrice === 'number' ? item.originalPrice : parsePrice(item.originalPrice || '0');
+      const qty = item.quantity || item.qty || 1;
+      const name = item.title || item.name || '';
+      const imgSrc = item.image || 'assets/store-logo-new-CxrzRODl.png';
+      subtotal += price * qty;
+      originalTotal += (original || price * 10) * qty;
+      return `
+        <div class="cart-item">
+          <img src="${imgSrc}" alt="${name}" onerror="this.src='assets/store-logo-new-CxrzRODl.png'">
+          <div class="item-info">
+            <div class="item-name">${name}</div>
+            <div>
+              <span class="item-price">${formatPrice(price)}</span>
+              ${original ? `<span class="item-original">${formatPrice(original)}</span>` : ''}
+            </div>
+            <div class="qty-controls">
+              <button class="qty-btn" onclick="changeQty(${idx}, -1)">−</button>
+              <span class="qty-num">${qty}</span>
+              <button class="qty-btn" onclick="changeQty(${idx}, 1)">+</button>
+            </div>
+          </div>
+          <button class="remove-btn" onclick="removeItem(${idx})">✕</button>
+        </div>`;
+    });
+
+    const economy = originalTotal - subtotal;
+
+    el.innerHTML = `
+      <div class="cart-header">
+        <h2>${cart.length} ${cart.length === 1 ? 'item' : 'itens'}</h2>
+        <button class="clear-btn" onclick="clearCart()">Limpar tudo</button>
+      </div>
+
+      ${items.join('')}
+
+      <div class="frete-badge">🚚 Frete grátis para todo o Brasil!</div>
+
+      <div class="summary">
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span>${formatPrice(subtotal)}</span>
+        </div>
+        <div class="summary-row">
+          <span>Frete</span>
+          <span class="green">GRÁTIS</span>
+        </div>
+        <div class="summary-row">
+          <span>Você economiza</span>
+          <span class="green">- ${formatPrice(economy)}</span>
+        </div>
+        <div class="summary-row total">
+          <span>Total</span>
+          <span>${formatPrice(subtotal)}</span>
+        </div>
+      </div>
+      <br/>`;
+  }
+
+  function changeQty(idx, delta) {
+    const cart = getCart();
+    const q = cart[idx].quantity || cart[idx].qty || 1;
+    cart[idx].quantity = Math.max(1, q + delta);
+    cart[idx].qty = cart[idx].quantity;
+    saveCart(cart);
+    render();
+  }
+
+  function removeItem(idx) {
+    const cart = getCart();
+    cart.splice(idx, 1);
+    saveCart(cart);
+    render();
+  }
+
+  function clearCart() {
+    if (confirm('Remover todos os itens?')) {
+      localStorage.removeItem('cart');
+      render();
+    }
+  }
+
+  function goCheckout() {
+    window.location.href = 'checkout.html';
+  }
+
+  render();
+</script>
+</body>
+</html>

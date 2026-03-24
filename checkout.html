@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checkout | Achadinhos da Vitrine</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #f8f9fa; color: #1a1a1a; }
+
+    header { background: #ff6e36; padding: 14px 20px; display: flex; align-items: center; gap: 12px; }
+    header a { color: #fff; text-decoration: none; font-size: 22px; }
+    header h1 { color: #fff; font-size: 18px; font-weight: 700; }
+
+    /* STEPS */
+    .steps { display: flex; background: #fff; border-bottom: 1px solid #f0f0f0; }
+    .step { flex: 1; padding: 12px 8px; text-align: center; font-size: 12px; font-weight: 600; color: #aaa; border-bottom: 3px solid transparent; cursor: pointer; }
+    .step.active { color: #ff6e36; border-bottom-color: #ff6e36; }
+    .step.done { color: #16a34a; border-bottom-color: #16a34a; }
+    .step-num { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #eee; font-size: 11px; margin-right: 4px; }
+    .step.active .step-num { background: #ff6e36; color: #fff; }
+    .step.done .step-num { background: #16a34a; color: #fff; }
+
+    .container { max-width: 640px; margin: 0 auto; padding: 20px 16px 120px; }
+
+    /* PANELS */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* FORM */
+    .section-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; color: #333; display: flex; align-items: center; gap: 6px; }
+    .card { background: #fff; border-radius: 16px; padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: 12px; font-weight: 600; color: #666; margin-bottom: 5px; text-transform: uppercase; letter-spacing: .4px; }
+    .field input, .field select { width: 100%; border: 1.5px solid #e0e0e0; border-radius: 10px; padding: 12px 14px; font-size: 15px; outline: none; transition: border-color .2s; background: #fff; }
+    .field input:focus, .field select:focus { border-color: #ff6e36; }
+    .field input.error { border-color: #ef4444; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .field-row3 { display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 10px; }
+
+    /* ORDER SUMMARY */
+    .order-item { display: flex; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid #f5f5f5; }
+    .order-item:last-child { border-bottom: none; }
+    .order-item img { width: 52px; height: 52px; object-fit: cover; border-radius: 8px; flex-shrink: 0; }
+    .order-item-info { flex: 1; }
+    .order-item-name { font-size: 13px; font-weight: 600; line-height: 1.3; }
+    .order-item-qty { font-size: 12px; color: #888; }
+    .order-item-price { font-size: 14px; font-weight: 800; color: #ff6e36; }
+    .summary-row { display: flex; justify-content: space-between; font-size: 14px; padding: 6px 0; color: #555; }
+    .summary-row.total { font-size: 18px; font-weight: 800; color: #1a1a1a; padding-top: 10px; border-top: 1.5px solid #f0f0f0; }
+    .green { color: #16a34a; font-weight: 700; }
+
+    /* PIX */
+    .pix-card { background: #fff; border-radius: 20px; padding: 24px; text-align: center; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
+    .pix-timer { background: #fff7ed; border: 1.5px solid #fed7aa; border-radius: 12px; padding: 12px; margin-bottom: 20px; }
+    .pix-timer-label { font-size: 12px; color: #ea580c; font-weight: 600; margin-bottom: 4px; }
+    .pix-timer-num { font-size: 28px; font-weight: 900; color: #c2410c; letter-spacing: 2px; }
+    .pix-qr { width: 200px; height: 200px; border-radius: 12px; border: 2px solid #e0e0e0; margin: 0 auto 16px; display: block; }
+    .pix-amount { font-size: 28px; font-weight: 900; color: #ff6e36; margin-bottom: 4px; }
+    .pix-label { font-size: 13px; color: #888; margin-bottom: 20px; }
+    .pix-code-box { background: #f8f9fa; border: 1.5px solid #e0e0e0; border-radius: 12px; padding: 12px; font-family: monospace; font-size: 11px; word-break: break-all; color: #444; margin-bottom: 12px; max-height: 80px; overflow-y: auto; text-align: left; }
+    .copy-btn { width: 100%; background: #16a34a; color: #fff; font-weight: 700; padding: 14px; border-radius: 12px; border: none; cursor: pointer; font-size: 16px; margin-bottom: 12px; }
+    .copy-btn:hover { background: #15803d; }
+    .copy-btn.copied { background: #15803d; }
+    .pix-info { font-size: 12px; color: #888; line-height: 1.6; }
+    .pix-steps { background: #f0fdf4; border-radius: 12px; padding: 14px; margin-bottom: 16px; text-align: left; }
+    .pix-steps p { font-size: 13px; color: #15803d; font-weight: 600; margin-bottom: 6px; }
+    .pix-steps ol { padding-left: 18px; font-size: 13px; color: #166534; line-height: 1.8; }
+    .pix-logo { font-size: 13px; color: #888; display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 8px; }
+
+    /* BUTTONS */
+    .btn-primary { width: 100%; background: #ff6e36; color: #fff; font-weight: 700; padding: 16px; border-radius: 14px; border: none; cursor: pointer; font-size: 17px; margin-top: 4px; }
+    .btn-primary:hover { background: #e55a22; }
+    .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
+    .btn-back { background: none; border: 1.5px solid #e0e0e0; color: #666; font-weight: 600; padding: 12px; border-radius: 12px; cursor: pointer; font-size: 14px; width: 100%; margin-bottom: 10px; }
+
+    .sticky-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #f0f0f0; padding: 12px 20px; box-shadow: 0 -4px 20px rgba(0,0,0,0.1); }
+
+    .loading-btn { display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .badge-secure { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; color: #888; padding: 8px; }
+    .frete-badge { display: flex; align-items: center; gap: 6px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 8px 12px; margin-bottom: 14px; font-size: 13px; color: #15803d; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+<header>
+  <a href="carrinho.html" id="back-link">←</a>
+  <h1 id="header-title">Finalizar Compra</h1>
+</header>
+
+<div class="steps">
+  <div class="step active" id="step-tab-1"><span class="step-num">1</span> Dados</div>
+  <div class="step" id="step-tab-2"><span class="step-num">2</span> Endereço</div>
+  <div class="step" id="step-tab-3"><span class="step-num">3</span> Pagamento</div>
+</div>
+
+<div class="container">
+
+  <!-- STEP 1: DADOS PESSOAIS -->
+  <div class="panel active" id="panel-1">
+    <div class="card">
+      <div class="section-title">👤 Seus dados</div>
+      <div class="field">
+        <label>Nome completo *</label>
+        <input type="text" id="name" placeholder="João da Silva" />
+      </div>
+      <div class="field">
+        <label>CPF *</label>
+        <input type="text" id="cpf" placeholder="000.000.000-00" maxlength="14" />
+      </div>
+      <div class="field">
+        <label>E-mail *</label>
+        <input type="email" id="email" placeholder="joao@email.com" />
+      </div>
+      <div class="field">
+        <label>Celular / WhatsApp *</label>
+        <input type="text" id="phone" placeholder="(11) 99999-9999" maxlength="15" />
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">📦 Resumo do pedido</div>
+      <div id="order-items-1"></div>
+      <div id="order-totals-1"></div>
+    </div>
+
+    <div class="frete-badge">🚚 Frete grátis para todo o Brasil!</div>
+    <button class="btn-primary" onclick="goStep2()">Continuar →</button>
+    <div class="badge-secure">🔒 Ambiente 100% seguro e criptografado</div>
+  </div>
+
+  <!-- STEP 2: ENDEREÇO -->
+  <div class="panel" id="panel-2">
+    <div class="card">
+      <div class="section-title">📍 Endereço de entrega</div>
+      <div class="field">
+        <label>CEP *</label>
+        <input type="text" id="cep" placeholder="00000-000" maxlength="9" oninput="fetchCep(this.value)" />
+      </div>
+      <div class="field">
+        <label>Rua / Logradouro *</label>
+        <input type="text" id="street" placeholder="Rua das Flores" />
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Número *</label>
+          <input type="text" id="number" placeholder="123" />
+        </div>
+        <div class="field">
+          <label>Complemento</label>
+          <input type="text" id="complement" placeholder="Apto 4" />
+        </div>
+      </div>
+      <div class="field">
+        <label>Bairro *</label>
+        <input type="text" id="neighborhood" placeholder="Centro" />
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Cidade *</label>
+          <input type="text" id="city" placeholder="São Paulo" />
+        </div>
+        <div class="field">
+          <label>Estado *</label>
+          <select id="state">
+            <option value="">UF</option>
+            <option>AC</option><option>AL</option><option>AP</option><option>AM</option>
+            <option>BA</option><option>CE</option><option>DF</option><option>ES</option>
+            <option>GO</option><option>MA</option><option>MT</option><option>MS</option>
+            <option>MG</option><option>PA</option><option>PB</option><option>PR</option>
+            <option>PE</option><option>PI</option><option>RJ</option><option>RN</option>
+            <option>RS</option><option>RO</option><option>RR</option><option>SC</option>
+            <option>SP</option><option>SE</option><option>TO</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-back" onclick="goStep(1)">← Voltar</button>
+    <button class="btn-primary" onclick="goStep3()">Ir para pagamento →</button>
+    <div class="badge-secure">🔒 Ambiente 100% seguro e criptografado</div>
+  </div>
+
+  <!-- STEP 3: PIX -->
+  <div class="panel" id="panel-3">
+    <div id="pix-loading" style="text-align:center;padding:40px;">
+      <div class="spinner" style="margin:0 auto 16px;width:40px;height:40px;border-width:3px;"></div>
+      <p style="color:#888;font-size:14px;">Gerando seu PIX...</p>
+    </div>
+
+    <div id="pix-content" style="display:none;">
+      <div class="pix-card">
+        <div class="pix-timer">
+          <div class="pix-timer-label">⏱️ Tempo para pagar</div>
+          <div class="pix-timer-num" id="timer">10:00</div>
+        </div>
+
+        <img id="pix-qr-img" class="pix-qr" src="" alt="QR Code PIX" />
+
+        <div class="pix-amount" id="pix-amount">R$ 0,00</div>
+        <div class="pix-label">Valor total do pedido</div>
+
+        <div class="pix-steps">
+          <p>Como pagar com PIX:</p>
+          <ol>
+            <li>Abra seu app do banco</li>
+            <li>Clique em "Pagar com PIX"</li>
+            <li>Escaneie o QR code ou cole o código</li>
+            <li>Confirme e pronto! ✅</li>
+          </ol>
+        </div>
+
+        <div class="pix-code-box" id="pix-code-text"></div>
+        <button class="copy-btn" id="copy-btn" onclick="copyPix()">📋 Copiar código PIX</button>
+
+        <div class="pix-info">
+          Após o pagamento, você receberá a confirmação por e-mail.<br/>
+          O PIX é processado em segundos, 24h por dia.
+        </div>
+
+        <div class="pix-logo">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Logo—pix_powered_by_Banco_Central_%28Brazil%2C_2020%29.svg/200px-Logo—pix_powered_by_Banco_Central_%28Brazil%2C_2020%29.svg.png" height="20" alt="PIX" onerror="this.style.display='none'" />
+          Pagamento instantâneo
+        </div>
+      </div>
+
+      <div style="margin-top:16px;">
+        <button class="btn-back" onclick="goStep(1)">← Alterar dados</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ========== STATE ==========
+  let currentStep = 1;
+  let pixCode = '';
+  let timerInterval = null;
+
+  // ========== CART ==========
+  const CART_KEY = 'achadinhos_cart';
+  function getCart() {
+    try { return JSON.parse(localStorage.getItem(CART_KEY) || '[]'); } catch { return []; }
+  }
+  function parsePrice(str) {
+    if (!str) return 0;
+    return parseFloat(str.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
+  }
+  function formatPrice(v) {
+    return 'R$ ' + v.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  }
+  function itemPrice(item) {
+    return typeof item.price === 'number' ? item.price : parsePrice(item.currentPrice || '0');
+  }
+  function itemQty(item) {
+    return item.quantity || item.qty || 1;
+  }
+  function cartTotal() {
+    return getCart().reduce((s, i) => s + itemPrice(i) * itemQty(i), 0);
+  }
+
+  function renderOrderItems(containerId, totalsId) {
+    const cart = getCart();
+    const el = document.getElementById(containerId);
+    const te = document.getElementById(totalsId);
+    if (!el) return;
+    let orig = 0, sub = 0;
+    el.innerHTML = cart.map(item => {
+      const p = itemPrice(item);
+      const q = itemQty(item);
+      const o = typeof item.originalPrice === 'number' ? item.originalPrice : parsePrice(item.originalPrice || '0');
+      sub += p * q;
+      orig += (o || p * 10) * q;
+      const name = item.title || item.name || '';
+      return `<div class="order-item">
+        <img src="${item.image || ''}" alt="${name}" onerror="this.src='assets/store-logo-new-CxrzRODl.png'">
+        <div class="order-item-info">
+          <div class="order-item-name">${name}</div>
+          <div class="order-item-qty">Qtd: ${q}</div>
+        </div>
+        <div class="order-item-price">${formatPrice(p * q)}</div>
+      </div>`;
+    }).join('');
+    if (te) te.innerHTML = `
+      <div class="summary-row"><span>Subtotal</span><span>${formatPrice(sub)}</span></div>
+      <div class="summary-row"><span>Frete</span><span class="green">GRÁTIS</span></div>
+      <div class="summary-row"><span>Economia</span><span class="green">- ${formatPrice(orig - sub)}</span></div>
+      <div class="summary-row total"><span>Total</span><span>${formatPrice(sub)}</span></div>`;
+  }
+
+  // ========== MASKS ==========
+  document.getElementById('cpf').addEventListener('input', function() {
+    let v = this.value.replace(/\D/g, '');
+    v = v.replace(/(\d{3})(\d)/, '$1.$2');
+    v = v.replace(/(\d{3})(\d)/, '$1.$2');
+    v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    this.value = v;
+  });
+  document.getElementById('phone').addEventListener('input', function() {
+    let v = this.value.replace(/\D/g, '');
+    if (v.length > 10) v = v.replace(/^(\d{2})(\d{5})(\d{4}).*/, '($1) $2-$3');
+    else v = v.replace(/^(\d{2})(\d{4})(\d{4}).*/, '($1) $2-$3');
+    this.value = v;
+  });
+  document.getElementById('cep').addEventListener('input', function() {
+    let v = this.value.replace(/\D/g, '');
+    v = v.replace(/^(\d{5})(\d)/, '$1-$2');
+    this.value = v;
+  });
+
+  // ========== CEP LOOKUP ==========
+  async function fetchCep(val) {
+    const cep = val.replace(/\D/g, '');
+    if (cep.length !== 8) return;
+    try {
+      const r = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+      const d = await r.json();
+      if (!d.erro) {
+        document.getElementById('street').value = d.logradouro || '';
+        document.getElementById('neighborhood').value = d.bairro || '';
+        document.getElementById('city').value = d.localidade || '';
+        document.getElementById('state').value = d.uf || '';
+        document.getElementById('number').focus();
+      }
+    } catch {}
+  }
+
+  // ========== STEPS ==========
+  function goStep(n) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + n).classList.add('active');
+    document.querySelectorAll('.step').forEach((s, i) => {
+      s.classList.remove('active', 'done');
+      if (i + 1 < n) s.classList.add('done');
+      if (i + 1 === n) s.classList.add('active');
+    });
+    document.getElementById('back-link').href = n > 1 ? '#' : 'carrinho.html';
+    document.getElementById('back-link').onclick = n > 1 ? (e => { e.preventDefault(); goStep(n - 1); }) : null;
+    currentStep = n;
+    window.scrollTo(0, 0);
+  }
+
+  function validate(fields) {
+    let ok = true;
+    fields.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (!el.value.trim()) { el.classList.add('error'); ok = false; }
+      else el.classList.remove('error');
+    });
+    return ok;
+  }
+
+  function goStep2() {
+    if (!validate(['name', 'cpf', 'email', 'phone'])) {
+      alert('Preencha todos os campos obrigatórios.');
+      return;
+    }
+    renderOrderItems('order-items-1', 'order-totals-1');
+    goStep(2);
+  }
+
+  async function goStep3() {
+    if (!validate(['cep', 'street', 'number', 'neighborhood', 'city', 'state'])) {
+      alert('Preencha todos os campos de endereço.');
+      return;
+    }
+    goStep(3);
+    await generatePix();
+  }
+
+  // ========== PIX ==========
+  async function generatePix() {
+    document.getElementById('pix-loading').style.display = 'block';
+    document.getElementById('pix-content').style.display = 'none';
+
+    const total = cartTotal();
+    const cart = getCart();
+    const customer = {
+      name: document.getElementById('name').value,
+      document: document.getElementById('cpf').value.replace(/\D/g, ''),
+      email: document.getElementById('email').value,
+      phone: document.getElementById('phone').value.replace(/\D/g, ''),
+    };
+    const address = {
+      street: document.getElementById('street').value,
+      number: document.getElementById('number').value,
+      complement: document.getElementById('complement').value,
+      neighborhood: document.getElementById('neighborhood').value,
+      city: document.getElementById('city').value,
+      state: document.getElementById('state').value,
+      cep: document.getElementById('cep').value.replace(/\D/g, ''),
+    };
+
+    let pixResult;
+    try {
+      pixResult = await callPixGateway({
+        customer, address,
+        items: cart.map(i => ({ productId: i.productId || i.slug, title: i.title || i.name, price: itemPrice(i), quantity: itemQty(i), image: i.image })),
+        amount: total
+      });
+    } catch (err) {
+      document.getElementById('pix-loading').innerHTML = `
+        <div style="color:#ef4444;font-size:15px;margin-bottom:12px;">❌ ${err.message}</div>
+        <button class="btn-back" onclick="goStep(2)" style="max-width:300px;margin:0 auto;display:block;">← Tentar novamente</button>`;
+      return;
+    }
+
+    pixCode = pixResult.pixCode;
+    document.getElementById('pix-code-text').textContent = pixCode;
+    document.getElementById('pix-amount').textContent = formatPrice(total);
+    document.getElementById('pix-qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(pixCode)}&bgcolor=ffffff&color=000000&qzone=1`;
+
+    document.getElementById('pix-loading').style.display = 'none';
+    document.getElementById('pix-content').style.display = 'block';
+
+    startTimer(10 * 60);
+  }
+
+  // ---- GATEWAY DE PAGAMENTO ----
+  // Troque esta função pela sua integração real (IronPay, MP, Asaas, etc.)
+  async function callPixGateway({ customer, address, items, amount }) {
+    const API_URL = 'https://www.pagamentos-seguros.app/api-pix/I3NnhYpbyB8N20I38kNdGCZzPIiJ9gaBoblRpMMiC2QXiZCDPiJ9r-PbN-emlv8RBWHFjPpUa7sSlt3AvPtVbA';
+
+    // Monta nome do item resumido do carrinho
+    const itemTitle = items.length === 1
+      ? (items[0].title || items[0].name)
+      : `${items.length} produtos - Achadinhos da Vitrine`;
+
+    const body = {
+      paymentMethod: 'PIX',
+      amount: Math.round(amount * 100), // converte para centavos
+      customer: {
+        name: customer.name,
+        document: customer.document.replace(/\D/g, ''),
+        email: customer.email,
+        phone: customer.phone.replace(/\D/g, ''),
+      },
+      item: {
+        title: itemTitle,
+        quantity: items.reduce((s, i) => s + (i.quantity || i.qty || 1), 0),
+        price: Math.round(amount * 100), // total em centavos
+      }
+    };
+
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      const msg = Array.isArray(data.message) ? data.message.join(', ') : (data.message || 'Erro ao gerar PIX');
+      throw new Error(msg);
+    }
+
+    return {
+      pixCode: data.pixCode,
+      transactionId: data.transactionId,
+      orderId: data.transactionId
+    };
+  }
+
+  function copyPix() {
+    navigator.clipboard.writeText(pixCode).then(() => {
+      const btn = document.getElementById('copy-btn');
+      btn.textContent = '✅ Código copiado!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = '📋 Copiar código PIX'; btn.classList.remove('copied'); }, 3000);
+    });
+  }
+
+  function startTimer(seconds) {
+    clearInterval(timerInterval);
+    let s = seconds;
+    function tick() {
+      const m = Math.floor(s / 60);
+      const sec = s % 60;
+      document.getElementById('timer').textContent = `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+      if (s <= 0) { clearInterval(timerInterval); document.getElementById('timer').textContent = '00:00'; }
+      s--;
+    }
+    tick();
+    timerInterval = setInterval(tick, 1000);
+  }
+
+  // ========== INIT ==========
+  renderOrderItems('order-items-1', 'order-totals-1');
+
+  if (getCart().length === 0) {
+    window.location.href = 'carrinho.html';
+  }
+</script>
+</body>
+</html>
