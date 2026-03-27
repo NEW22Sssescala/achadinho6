@@ -25,6 +25,13 @@ function checkRateLimit(ip) {
   return true;
 }
 
+function getUtmFromCookie(cookieHeader) {
+  try {
+    const match = (cookieHeader || '').match(/(?:^|;\s*)__utm=([^;]*)/);
+    return match ? decodeURIComponent(match[1]) : '';
+  } catch { return ''; }
+}
+
 export default async function handler(req, res) {
   // CORS — bloqueia origens desconhecidas (browsers)
   const origin = req.headers.origin || '';
@@ -43,7 +50,8 @@ export default async function handler(req, res) {
     return res.status(429).json({ error: 'Muitas requisições. Aguarde 1 minuto.' });
   }
 
-  const { customer, items, item, amount, paymentMethod, utm } = req.body || {};
+  const { customer, items, item, amount, paymentMethod, utm: utmBody } = req.body || {};
+  const utm = utmBody || getUtmFromCookie(req.headers.cookie);
 
   // Valida dados do cliente
   if (!customer?.name || !customer?.document || !customer?.email || !customer?.phone) {

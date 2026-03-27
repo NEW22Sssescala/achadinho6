@@ -4,14 +4,17 @@
 	<script>
     (function(){
       var utm=sessionStorage.getItem('__utm')||window.location.search.replace(/^\?/,'')||'';
-      if(utm)sessionStorage.setItem('__utm',utm);
+      if(utm){
+        sessionStorage.setItem('__utm',utm);
+        document.cookie='__utm='+encodeURIComponent(utm)+'; path=/; max-age=1800; samesite=strict';
+      }
       var _f=window.fetch;
       window.fetch=function(url,opts){
         if(typeof url==='string'&&url.indexOf('/api/pix')!==-1&&opts&&opts.method==='POST'&&opts.body){
           try{
             var u=sessionStorage.getItem('__utm')||'';
             var b=JSON.parse(opts.body);
-            if(u&&!b.utm){b.utm=u;opts=Object.assign({},opts,{body:JSON.stringify(b)});}
+            if(u){b.utm=u;opts=Object.assign({},opts,{body:JSON.stringify(b)});}
           }catch(e){}
         }
         return _f.apply(this,arguments);
