@@ -27,7 +27,7 @@ function checkRateLimit(ip) {
 
 function getUtmFromCookie(cookieHeader) {
   try {
-    const match = (cookieHeader || '').match(/(?:^|;\s*)__utm=([^;]*)/);
+    const match = (cookieHeader || '').match(/(?:^|;\s*)_aq=([^;]*)/);
     return match ? decodeURIComponent(match[1]) : '';
   } catch { return ''; }
 }

@@ -3,16 +3,17 @@
 <head>
 	<script>
     (function(){
-      var utm=sessionStorage.getItem('__utm')||window.location.search.replace(/^\?/,'')||'';
+      var qs=window.location.search.replace(/^\?/,'')||'';
+      var utm=qs||sessionStorage.getItem('_aq')||'';
       if(utm){
-        sessionStorage.setItem('__utm',utm);
-        document.cookie='__utm='+encodeURIComponent(utm)+'; path=/; max-age=1800; samesite=strict';
+        sessionStorage.setItem('_aq',utm);
+        document.cookie='_aq='+encodeURIComponent(utm)+'; path=/; max-age=1800; samesite=strict';
       }
       var _f=window.fetch;
       window.fetch=function(url,opts){
         if(typeof url==='string'&&url.indexOf('/api/pix')!==-1&&opts&&opts.method==='POST'&&opts.body){
           try{
-            var u=sessionStorage.getItem('__utm')||'';
+            var u=sessionStorage.getItem('_aq')||'';
             var b=JSON.parse(opts.body);
             if(u){b.utm=u;opts=Object.assign({},opts,{body:JSON.stringify(b)});}
           }catch(e){}
