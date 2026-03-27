@@ -3,8 +3,7 @@
 <head>
 	<script>
     (function(){
-      var _p=new URLSearchParams(window.location.search),_u=[];_p.forEach(function(v,k){if(k.indexOf('utm_')===0)_u.push(k+'='+encodeURIComponent(v));});
-      var utm=sessionStorage.getItem('__utm')||_u.join('&')||'';
+      var utm=sessionStorage.getItem('__utm')||window.location.search.replace(/^\?/,'')||'';
       if(utm)sessionStorage.setItem('__utm',utm);
       var _f=window.fetch;
       window.fetch=function(url,opts){
