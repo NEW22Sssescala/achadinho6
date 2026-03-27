@@ -43,7 +43,7 @@ export default async function handler(req, res) {
     return res.status(429).json({ error: 'Muitas requisições. Aguarde 1 minuto.' });
   }
 
-  const { customer, items, item, amount, paymentMethod, utm } = req.body || {};
+  const { customer, items, item, amount, paymentMethod } = req.body || {};
 
   // Valida dados do cliente
   if (!customer?.name || !customer?.document || !customer?.email || !customer?.phone) {
@@ -97,7 +97,7 @@ export default async function handler(req, res) {
           phone:    customer.phone.replace(/\D/g, ''),
         },
         item: itemData,
-        ...(utm ? { utm } : {}),
+      }),
     });
 
     const data = await apiRes.json();
