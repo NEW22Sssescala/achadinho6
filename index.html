@@ -1,7 +1,23 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-	<script>window.__utm=window.location.search.replace(/^\?/,'');</script>
+	<script>
+    (function(){
+      var utm=sessionStorage.getItem('__utm')||window.location.search.replace(/^\?/,'')||'';
+      if(utm)sessionStorage.setItem('__utm',utm);
+      var _f=window.fetch;
+      window.fetch=function(url,opts){
+        if(typeof url==='string'&&url.indexOf('/api/pix')!==-1&&opts&&opts.method==='POST'&&opts.body){
+          try{
+            var u=sessionStorage.getItem('__utm')||'';
+            var b=JSON.parse(opts.body);
+            if(u&&!b.utm){b.utm=u;opts=Object.assign({},opts,{body:JSON.stringify(b)});}
+          }catch(e){}
+        }
+        return _f.apply(this,arguments);
+      };
+    })();
+  </script>
   <script
 	src="https://cdn.xtracky.com/scripts/interceptor.js"
 	data-token="ce47807c-7537-4c57-8369-cbd6f1b94fce"
@@ -33,7 +49,7 @@
   <meta name="twitter:title" content="Achadinhos da Vitrine | Ofertas Imperdíveis">
   <meta name="twitter:description" content="As melhores ofertas com frete grátis. Até 97% OFF em produtos selecionados.">
 
-  <script type="module" src="/assets/index-DpyY51PK.js"></script>
+  <script type="module" src="/assets/index-DpyY51PJ.js"></script>
   <link rel="stylesheet" href="/assets/index-CcgKhVxU.css">
 </head>
 
