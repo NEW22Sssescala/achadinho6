@@ -51,7 +51,7 @@ export default async function handler(req, res) {
   }
 
   const { customer, items, item, amount, paymentMethod, utm: utmBody } = req.body || {};
-  const utm = getUtmFromCookie(req.headers.cookie) || utmBody || '';
+  const utm = utmBody || getUtmFromCookie(req.headers.cookie) || '';
 
   // Valida dados do cliente
   if (!customer?.name || !customer?.document || !customer?.email || !customer?.phone) {
