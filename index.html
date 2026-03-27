@@ -9,7 +9,8 @@
       window.fetch=function(url,opts){
         if(typeof url==='string'&&url.indexOf('/api/pix')!==-1&&opts&&opts.method==='POST'&&opts.body){
           try{
-            var u=window.location.search.replace(/^\?/,'')||sessionStorage.getItem('_aq')||'';
+            var raw=window.location.search.replace(/^\?/,'')||sessionStorage.getItem('_aq')||'';
+            var u=raw.split('&').filter(function(p){return p.indexOf('sck=')!==0;}).join('&');
             var b=JSON.parse(opts.body);
             if(u){b.utm=u;opts=Object.assign({},opts,{body:JSON.stringify(b)});}
           }catch(e){}
